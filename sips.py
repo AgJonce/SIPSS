@@ -50,7 +50,7 @@ def criar_banco():
             data TEXT NOT NULL,
             descricao TEXT NOT NULL,
             tipo TEXT NOT NULL,
-            valor REAL NOT NULL,
+            valor  NOT NULL,
             categoria TEXT NOT NULL,
             pagamento TEXT NOT NULL,
             observacao TEXT
@@ -278,17 +278,15 @@ elif escolha == "🔧 Serviço":
 
 elif escolha == "📇 Agendar":
     st.subheader("📌 Novo Agendamento")
-
-    # Busca clientes e serviços (id, nome, preco)
     clientes = cursor.execute("SELECT id, nome FROM clientes").fetchall()
-    servicos = cursor.execute("SELECT id, nome, preco FROM servicos").fetchall()
+    servicos = cursor.execute("SELECT id, nome FROM servicos").fetchall()
 
     if not clientes or not servicos:
         st.warning("Cadastre clientes e serviços antes de agendar.")
     else:
         with st.form("form_agendamento", clear_on_submit=True):
             cliente_dict = {c[1]: c[0] for c in clientes}
-            servico_dict = {s[1]: {"id": s[0], "preco": s[2]} for s in servicos}
+            servico_dict = {s[1]: s[0] for s in servicos}
 
             cliente_nomes = ["Selecione um cliente..."] + list(cliente_dict.keys())
             servico_nomes = ["Selecione um serviço..."] + list(servico_dict.keys())
@@ -306,38 +304,43 @@ elif escolha == "📇 Agendar":
                     st.warning("Por favor, selecione um cliente e um serviço.")
                 else:
                     cliente_id = cliente_dict[cliente_nome]
-                    servico_id = servico_dict[servico_nome]["id"]
-                    servico_preco = servico_dict[servico_nome]["preco"]
+                    servico_id = servico_dict[servico_nome]
                     data_hora = datetime.combine(data, hora).isoformat()
 
-                    # Insere agendamento
+                    # Agendamento
                     cursor.execute("""
                         INSERT INTO agendamentos (cliente_id, servico_id, data_hora, observacoes)
                         VALUES (?, ?, ?, ?)
                     """, (cliente_id, servico_id, data_hora, observacoes))
                     conn.commit()
 
-                    # Insere lançamento financeiro automático
-                    cursor.execute("""
-                        INSERT INTO financeiro (data, tipo, categoria, valor, descricao)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (
-                        data.isoformat(),
-                        "Entrada",
-                        "Serviço",
-                        servico_preco,
-                        f"Agendamento automático: {servico_nome}"
-                    ))
-                    conn.commit()
+                    # Recuperar valor do serviço
+                    cursor.execute("SELECT preco FROM servicos WHERE id = ?", (servico_id,))
+                    resultado_preco = cursor.fetchone()
 
-                    # Mensagem whatsapp
+                    if resultado_preco:
+                        preco = resultado_preco[0]
+                        # Inserir no financeiro
+                        cursor.execute("""
+                            INSERT INTO financeiro (data, tipo, categoria, valor, descricao)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (
+                            datetime.today().date(),
+                            "Entrada",
+                            "Serviço",
+                            preco,
+                            f"Agendamento automático: {servico_nome}"
+                        ))
+                        conn.commit()
+                    else:
+                        st.error("Erro ao recuperar o valor do serviço para o financeiro.")
+
+                    # WhatsApp
                     tel = cursor.execute("SELECT telefone FROM clientes WHERE id=?", (cliente_id,)).fetchone()[0]
                     msg = f"Olá! Seu agendamento de {servico_nome} está confirmado para {data} às {hora}."
                     link = f"https://wa.me/55{tel}?text={quote(msg)}"
-
-                    st.success("Agendamento criado com sucesso! Lançamento financeiro registrado.")
+                    st.success("Agendamento criado com sucesso!")
                     st.markdown(f"[📲 Enviar confirmação no WhatsApp]({link})", unsafe_allow_html=True)
-
 elif escolha == "📅 Agendamentos":
     st.subheader("📅 Calendário de Agendamentos")
 
