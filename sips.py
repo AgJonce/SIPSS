@@ -408,7 +408,7 @@ elif escolha == "💰 Financeiro":
             data = st.date_input("📅 Data", value=datetime.today())
             tipo = st.selectbox("📈 Tipo", ["Selecione um Tipo...", "Entrada", "Saída"])
             categoria = st.selectbox("🏷️ Categoria (Serviço)", ["Selecione um Serviço..."] + categorias_servicos)
-            pagamento = st.selectbox("💳 Forma de Pagamento", ["Selecione um Tipo...", "Pix", "Dinheiro", "Cartão"])
+            pagamento = st.selectbox("💳 Pagamento", ["Selecione um Tipo...", "Pix", "Dinheiro", "Cartão"])
         with col2:
             descricao = st.text_input("📝 Descrição")
             valor = st.number_input("💰 Valor (R$)", min_value=0.01, format="%.2f")
@@ -422,12 +422,13 @@ elif escolha == "💰 Financeiro":
             elif categoria == "Selecione um Serviço...":
                 st.error("❗ Selecione uma categoria válida.")
             elif pagamento == "Selecione um Tipo...":
-                st.error("❗ Selecione uma forma de pagamento.")
+                st.error("❗ Selecione um tipo de pagamento válido.")
             elif not descricao:
                 st.error("❗ Por favor, preencha a descrição.")
             elif valor <= 0:
                 st.error("❗ Valor deve ser maior que zero.")
             else:
+                st.write("DEBUG valores antes do insert:", data, descricao, tipo, valor, categoria, pagamento, observacao)
                 cursor.execute("""
                     INSERT INTO financeiro (data, descricao, tipo, valor, categoria, pagamento, observacao)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -435,7 +436,6 @@ elif escolha == "💰 Financeiro":
                 conn.commit()
                 st.success("✅ Lançamento salvo com sucesso!")
                 df_financeiro = carregar_financeiro()
-
     st.write("### 🔍 Filtrar Lançamentos")
     if not df_financeiro.empty:
         df = df_financeiro.copy()
