@@ -389,20 +389,16 @@ elif escolha == "📅 Agendamentos":
 elif escolha == "💰 Financeiro":
     st.subheader("💰 Controle Financeiro de Prestadores de Serviço")
 
-    # Função para carregar dados do banco
     def carregar_financeiro():
         df = pd.read_sql_query("SELECT * FROM financeiro", conn)
         if not df.empty:
             df["data"] = pd.to_datetime(df["data"])
         return df
 
-    # Carrega os serviços cadastrados para a categoria
     def carregar_categorias_servicos():
         df_servicos = pd.read_sql_query("SELECT nome FROM servicos", conn)
         return df_servicos["nome"].tolist()
 
-
-    # Carrega dados para exibição
     df_financeiro = carregar_financeiro()
     categorias_servicos = carregar_categorias_servicos()
 
@@ -412,7 +408,7 @@ elif escolha == "💰 Financeiro":
             data = st.date_input("📅 Data", value=datetime.today())
             tipo = st.selectbox("📈 Tipo", ["Selecione um Tipo...", "Entrada", "Saída"])
             categoria = st.selectbox("🏷️ Categoria (Serviço)", ["Selecione um Serviço..."] + categorias_servicos)
-            pagamento = st.selectbox("📈 Tipo", ["Selecione um Tipo...", "Pix", "Dinheiro","Cartão"])
+            pagamento = st.selectbox("💳 Forma de Pagamento", ["Selecione um Tipo...", "Pix", "Dinheiro", "Cartão"])
         with col2:
             descricao = st.text_input("📝 Descrição")
             valor = st.number_input("💰 Valor (R$)", min_value=0.01, format="%.2f")
@@ -425,18 +421,21 @@ elif escolha == "💰 Financeiro":
                 st.error("❗ Selecione um tipo válido.")
             elif categoria == "Selecione um Serviço...":
                 st.error("❗ Selecione uma categoria válida.")
+            elif pagamento == "Selecione um Tipo...":
+                st.error("❗ Selecione uma forma de pagamento.")
             elif not descricao:
                 st.error("❗ Por favor, preencha a descrição.")
             elif valor <= 0:
                 st.error("❗ Valor deve ser maior que zero.")
             else:
                 cursor.execute("""
-                    INSERT INTO financeiro (data, descricao, tipo, valor, categoria, observacao)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (data.isoformat(), descricao, tipo, valor, categoria, observacao))
+                    INSERT INTO financeiro (data, descricao, tipo, valor, categoria, pagamento, observacao)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (data.isoformat(), descricao, tipo, valor, categoria, pagamento, observacao))
                 conn.commit()
                 st.success("✅ Lançamento salvo com sucesso!")
                 df_financeiro = carregar_financeiro()
+
     st.write("### 🔍 Filtrar Lançamentos")
     if not df_financeiro.empty:
         df = df_financeiro.copy()
