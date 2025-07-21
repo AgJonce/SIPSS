@@ -44,18 +44,18 @@ def criar_banco():
             FOREIGN KEY (servico_id) REFERENCES servicos(id)
         )
     ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS financeiro (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            data TEXT NOT NULL,
-            descricao TEXT NOT NULL,
-            tipo TEXT NOT NULL,
-            valor REAL NOT NULL,
-            categoria TEXT NOT NULL,
-            pagamento TEXT NOT NULL,
-            observacao TEXT
-        )
-    ''')
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS financeiro (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        data TEXT NOT NULL,
+        descricao TEXT NOT NULL,
+        tipo TEXT NOT NULL,
+        valor REAL NOT NULL,
+        categoria TEXT NOT NULL,
+        pagamento TEXT NULL,
+        observacao TEXT
+    )
+''')
     conn.commit()
     conn.close()
     
