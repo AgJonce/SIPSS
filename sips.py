@@ -188,7 +188,11 @@ elif escolha == "👤 Cliente":
                 email = st.text_input("Email")
             with col2:
                 endereco = st.text_input("Endereço")
-                nascimento = st.date_input("Data de nascimento")
+                nascimento = st.date_input(
+                    "Data de nascimento",
+                        value=date(2000, 1, 1),
+                        max_value=date.today(),
+                        format="DD/MM/YYYY")
                 observacoes = st.text_area("Observações")
             enviado = st.form_submit_button("Salvar Cliente")
             if enviado:
@@ -221,7 +225,11 @@ elif escolha == "👤 Cliente":
                     email = st.text_input("Email", cliente[5])
                 with col2:
                     endereco = st.text_input("Endereço", cliente[4])
-                    nascimento = st.date_input("Data de nascimento", pd.to_datetime(cliente[6]))
+                    nascimento = st.date_input(
+                    "Data de nascimento",
+                        value=date(2000, 1, 1),
+                        max_value=date.today(),
+                        format="DD/MM/YYYY")
                     observacoes = st.text_area("Observações", cliente[7])
                 atualizado = st.form_submit_button("Atualizar Cliente")
                 if atualizado:
@@ -275,7 +283,6 @@ elif escolha == "🔧 Serviço":
                 st.success(f"Serviço **{nome_serv}** cadastrado com sucesso!")
             else:
                 st.warning("Preencha todos os campos corretamente.")
-
 elif escolha == "📇 Agendar":
     st.subheader("📌 Novo Agendamento")
 
