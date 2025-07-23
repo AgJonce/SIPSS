@@ -1,8 +1,11 @@
 import streamlit as st
+import locale
 import sqlite3
 import pandas as pd
 import os
 from datetime import datetime
+import pytz
+from datetime import date
 import plotly.express as px
 from urllib.parse import quote
 from streamlit_calendar import calendar
@@ -52,7 +55,7 @@ def criar_banco():
             tipo TEXT NOT NULL,
             valor REAL NOT NULL,
             categoria TEXT NOT NULL,
-            pagamento TEXT NULL,
+            pagamento TEXT NOT NULL,
             observacao TEXT
         )
     ''')
@@ -283,6 +286,7 @@ elif escolha == "🔧 Serviço":
                 st.success(f"Serviço **{nome_serv}** cadastrado com sucesso!")
             else:
                 st.warning("Preencha todos os campos corretamente.")
+
 elif escolha == "📇 Agendar":
     st.subheader("📌 Novo Agendamento")
 
@@ -357,7 +361,11 @@ elif escolha == "📅 Agendamentos":
     df = pd.read_sql_query(query, conn)
 
     if not df.empty:
-        df["start"] = pd.to_datetime(df["data_hora"])
+        # Define fuso horário de Brasília
+        tz_brasilia = pytz.timezone("America/Sao_Paulo")
+
+        # Converte para datetime e aplica fuso horário
+        df["start"] = pd.to_datetime(df["data_hora"]).dt.tz_localize("UTC").dt.tz_convert(tz_brasilia)
         df["end"] = df["start"] + pd.Timedelta(minutes=30)
         df["title"] = df["cliente"] + " - " + df["servico"]
 
@@ -368,7 +376,7 @@ elif escolha == "📅 Agendamentos":
 
         calendar_options = {
             "initialView": "dayGridMonth",
-            "locale": "pt-br",
+            "locale": "pt-br",  # ✅ Isso define o idioma como português
             "headerToolbar": {
                 "left": "prev,next today",
                 "center": "title",
@@ -396,16 +404,20 @@ elif escolha == "📅 Agendamentos":
 elif escolha == "💰 Financeiro":
     st.subheader("💰 Controle Financeiro de Prestadores de Serviço")
 
+    # Função para carregar dados do banco
     def carregar_financeiro():
         df = pd.read_sql_query("SELECT * FROM financeiro", conn)
         if not df.empty:
             df["data"] = pd.to_datetime(df["data"])
         return df
 
+    # Carrega os serviços cadastrados para a categoria
     def carregar_categorias_servicos():
         df_servicos = pd.read_sql_query("SELECT nome FROM servicos", conn)
         return df_servicos["nome"].tolist()
 
+
+    # Carrega dados para exibição
     df_financeiro = carregar_financeiro()
     categorias_servicos = carregar_categorias_servicos()
 
@@ -415,7 +427,7 @@ elif escolha == "💰 Financeiro":
             data = st.date_input("📅 Data", value=datetime.today())
             tipo = st.selectbox("📈 Tipo", ["Selecione um Tipo...", "Entrada", "Saída"])
             categoria = st.selectbox("🏷️ Categoria (Serviço)", ["Selecione um Serviço..."] + categorias_servicos)
-            pagamento = st.selectbox("💳 Pagamento", ["Selecione um Tipo...", "Pix", "Dinheiro", "Cartão"])
+            pagamento = st.selectbox("📈 Tipo", ["Selecione um Tipo...", "Pix", "Dinheiro","Cartão"])
         with col2:
             descricao = st.text_input("📝 Descrição")
             valor = st.number_input("💰 Valor (R$)", min_value=0.01, format="%.2f")
@@ -428,18 +440,15 @@ elif escolha == "💰 Financeiro":
                 st.error("❗ Selecione um tipo válido.")
             elif categoria == "Selecione um Serviço...":
                 st.error("❗ Selecione uma categoria válida.")
-            elif pagamento == "Selecione um Tipo...":
-                st.error("❗ Selecione um tipo de pagamento válido.")
             elif not descricao:
                 st.error("❗ Por favor, preencha a descrição.")
             elif valor <= 0:
                 st.error("❗ Valor deve ser maior que zero.")
             else:
-                st.write("DEBUG valores antes do insert:", data, descricao, tipo, valor, categoria, pagamento, observacao)
                 cursor.execute("""
-                    INSERT INTO financeiro (data, descricao, tipo, valor, categoria, pagamento, observacao)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (data.isoformat(), descricao, tipo, valor, categoria, pagamento, observacao))
+                    INSERT INTO financeiro (data, descricao, tipo, valor, categoria, observacao)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (data.isoformat(), descricao, tipo, valor, categoria, observacao))
                 conn.commit()
                 st.success("✅ Lançamento salvo com sucesso!")
                 df_financeiro = carregar_financeiro()
