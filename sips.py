@@ -309,6 +309,7 @@ elif escolha == "📇 Agendar":
 
             data = st.date_input("Data", value=datetime.today())
             hora = st.time_input("Hora")
+            pagamento = st.selectbox("📈 Tipo", ["Selecione um Tipo...", "Pix", "Dinheiro","Cartão"])
             observacoes = st.text_area("Observações")
             enviar = st.form_submit_button("Agendar")
 
@@ -330,8 +331,8 @@ elif escolha == "📇 Agendar":
 
                     # Insere lançamento financeiro automático
                     cursor.execute("""
-                        INSERT INTO financeiro (data, tipo, categoria, valor, descricao)
-                        VALUES (?, ?, ?, ?, ?)
+                        INSERT INTO financeiro (data, tipo, categoria, valor, pagamento,descricao)
+                        VALUES (?, ?, ?, ?, ?,?)
                     """, (
                         data.isoformat(),
                         "Entrada",
