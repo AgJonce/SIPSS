@@ -331,14 +331,17 @@ elif escolha == "📇 Agendar":
 
                     # Insere lançamento financeiro automático
                     cursor.execute("""
-                        INSERT INTO financeiro (data, tipo, categoria, valor, pagamento,descricao)
-                        VALUES (?, ?, ?, ?, ?,?)
+                        INSERT INTO financeiro (data, descricao, tipo, valor, categoria, pagamento, observacao)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, (
                         data.isoformat(),
+                        f"Agendamento automático: {servico_nome}"
                         "Entrada",
                         "Serviço",
                         servico_preco,
-                        f"Agendamento automático: {servico_nome}"
+                         "Serviço",
+                        "Não informado",
+                        None
                     ))
                     conn.commit()
 
