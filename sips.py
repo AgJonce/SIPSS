@@ -450,9 +450,16 @@ elif escolha == "💰 Financeiro":
                 st.error("❗ Valor deve ser maior que zero.")
             else:
                 cursor.execute("""
-                    INSERT INTO financeiro (data, descricao, tipo, valor, categoria, observacao)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (data.isoformat(), descricao, tipo, valor, categoria, observacao))
+                    INSERT INTO financeiro (data, descricao, tipo, valor, categoria, pagamento, observacao)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (data.isoformat(),
+                      descricao,
+                      tipo,
+                      valor,
+                      categoria,
+                      "Não informado",
+                      observacao
+                    ))
                 conn.commit()
                 st.success("✅ Lançamento salvo com sucesso!")
                 df_financeiro = carregar_financeiro()
