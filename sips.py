@@ -510,8 +510,6 @@ elif escolha == "💰 Financeiro":
         if busca:
             df = df[df["descricao"].str.contains(busca, case=False, na=False)]
 
-        df_display = df.sort_values(by="data", ascending=False).reset_index(drop=True)
-
         for index, row in df_display.iterrows():
             with st.expander(f"📌 {row['data'].strftime('%d/%m/%Y')} - {row['descricao']} ({row['tipo']})"):
                 st.write(f"💰 Valor: R$ {row['valor']:,.2f}")
