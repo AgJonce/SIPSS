@@ -369,7 +369,7 @@ elif escolha == "📅 Agendamentos":
         tz_brasilia = pytz.timezone("America/Sao_Paulo")
 
         # Converte para datetime e aplica fuso horário
-        df["start"] = pd.to_datetime(df["data_hora"]).dt.tz_localize("UTC").dt.tz_convert(tz_brasilia)
+        df["start"] = pd.to_datetime(df["data_hora"], utc=True).dt.tz_convert("America/Sao_Paulo")
         df["end"] = df["start"] + pd.Timedelta(minutes=30)
         df["title"] = df["cliente"] + " - " + df["servico"]
 
