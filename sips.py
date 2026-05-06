@@ -505,7 +505,7 @@ elif escolha == "💰 Financeiro":
         dt_fim_ts = pd.to_datetime(dt_fim)
 
         df = df[(df["data"] >= dt_inicio_ts) & (df["data"] <= dt_fim_ts)]
-       df_display = df.sort_values(by="data", ascending=False).reset_index(drop=True)
+        df_display = df.sort_values(by="data", ascending=False).reset_index(drop=True)
         busca = st.text_input("🔎 Buscar na descrição")
         if busca:
             df = df[df["descricao"].str.contains(busca, case=False, na=False)]
