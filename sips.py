@@ -61,6 +61,36 @@ def criar_banco():
     ''')
     conn.commit()
     conn.close()
+def finalizar_servico(conn, id_agendamento, valor, servico_nome):
+    import datetime
+
+    cursor = conn.cursor()
+
+    # Data atual
+    data_finalizacao = datetime.datetime.now().isoformat()
+
+    # Atualiza o status do agendamento
+    cursor.execute("""
+        UPDATE agendamentos
+        SET status = 'Concluído'
+        WHERE id = ?
+    """, (id_agendamento,))
+
+    # Lança no financeiro
+    cursor.execute("""
+        INSERT INTO financeiro (data, descricao, tipo, valor, categoria, pagamento, observacao)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data_finalizacao,
+        f"Serviço finalizado: {servico_nome}",
+        "Entrada",
+        valor,
+        "Serviço",
+        "Não informado",
+        None
+    ))
+
+    conn.commit()
     
 def format_brl(valor):
     # Formata número em moeda brasileira com vírgula decimal
